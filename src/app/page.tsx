@@ -11,7 +11,7 @@ export default function HomePage() {
   const [files, setFiles] = useState<string[]>([]);
   const [currentFile, setCurrentFile] = useState<string | null>(null);
 
-  const API_BASE = 'http://localhost:3001/memos';
+  const API_BASE = '/api/memos';
 
   const fetchMemoList = async () => {
     const res = await fetch(API_BASE);
