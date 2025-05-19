@@ -1,103 +1,109 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useEffect, useState } from 'react';
+import Sidebar from './components/Sidebar';
+import Editor from './components/Editor';
+import Preview from './components/Preview';
+import { Box, Divider } from '@mui/material';
+
+export default function HomePage() {
+  const [text, setText] = useState('');
+  const [files, setFiles] = useState<string[]>([]);
+  const [currentFile, setCurrentFile] = useState<string | null>(null);
+
+  const API_BASE = 'http://localhost:3001/memos';
+
+  const fetchMemoList = async () => {
+    const res = await fetch(API_BASE);
+    return await res.json(); // ['sample1.md', ...]
+  };
+
+  const fetchMemoContent = async (filename: string) => {
+    const res = await fetch(`${API_BASE}/${filename}`);
+    return await res.text();
+  };
+
+  const saveMemo = async (filename: string, content: string) => {
+    await fetch(`${API_BASE}/${filename}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'text/plain' },
+      body: content,
+    });
+  };
+
+  const createMemo = async () => {
+    try {
+      const res = await fetch(API_BASE, { method: 'POST' });
+
+      if (!res.ok) throw new Error(await res.text());
+
+      const result = await res.json();
+      console.log(result.message);
+
+      fetchMemoList().then(setFiles);
+    } catch (err: any) {
+      console.error('新規作成失敗:', err.message);
+      alert('新しいファイルの作成に失敗しました');
+    }
+  };
+
+  const deleteMemo = async (fileName: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/${fileName}`, { method: 'DELETE' });
+
+      if (!res.ok) throw new Error(await res.text());
+
+      const result = await res.json();
+      console.log(result.message);
+
+      fetchMemoList().then(setFiles);
+    } catch (err: any) {
+      console.error('削除失敗:', err.message);
+      alert('削除に失敗しました');
+    }
+  };
+
+  useEffect(() => {
+    fetchMemoList().then(setFiles);
+  }, []);
+
+  useEffect(() => {
+    if (!currentFile) return;
+
+    const timeoutId = setTimeout(() => {
+      saveMemo(currentFile, text).catch((err) => {
+        console.error('自動保存失敗:', err);
+      });
+    }, 1500);
+
+    return () => clearTimeout(timeoutId);
+  }, [text]);
+
+  const handleFileSelect = async (filename: string) => {
+    try {
+      if (currentFile && currentFile !== filename) {
+        await saveMemo(currentFile, text);
+      }
+      const content = await fetchMemoContent(filename);
+      setText(content);
+      setCurrentFile(filename);
+    } catch (err) {
+      console.error('読み込み or 保存失敗:', err);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    <Box display="flex" height="100vh">
+      <Sidebar
+        files={files}
+        currentFile={currentFile ?? ''}
+        onFileSelect={handleFileSelect}
+        onDelete={deleteMemo}
+        onCreate={createMemo}
+      />
+      <Editor text={text} setText={setText} />
+      <Divider orientation="vertical" flexItem sx={{ mx: 1, borderColor: 'rgba(0, 0, 0, 0.12)' }} />
+      <Preview text={text} />
+    </Box>
   );
 }
