@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';  // MongoDBクライアントの接続用ユーティリティ
 
+//すべてのメモを取得  GET
+//新しいメモを作成　　POST
+
+//すべてのメモを取得
+export async function GET(request: NextRequest) {
+}
+
 //新しいメモを作成
 export async function POST(request: NextRequest) {
     try {
@@ -27,5 +34,3 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to create memo' }, { status: 500 });
     }
 }
-
-//すべてのメモを取得

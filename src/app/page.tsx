@@ -18,13 +18,13 @@ export default function HomePage() {
     return await res.json(); // ['sample1.md', ...]
   };
 
-  const fetchMemoContent = async (filename: string) => {
-    const res = await fetch(`${API_BASE}/${filename}`);
+  const fetchMemoContent = async (memo_id: string) => {
+    const res = await fetch(`/api/memos/${memo_id}`);
     return await res.text();
   };
 
-  const saveMemo = async (filename: string, content: string) => {
-    await fetch(`${API_BASE}/${filename}`, {
+  const saveMemo = async (memo_id: string, content: string) => {
+    await fetch(`/api/memos/${memo_id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'text/plain' },
       body: content,
@@ -33,7 +33,7 @@ export default function HomePage() {
 
   const createMemo = async () => {
     try {
-      const res = await fetch(API_BASE, { method: 'POST' });
+      const res = await fetch('/api/memos', { method: 'POST' });
 
       if (!res.ok) throw new Error(await res.text());
 
@@ -47,9 +47,9 @@ export default function HomePage() {
     }
   };
 
-  const deleteMemo = async (fileName: string) => {
+  const deleteMemo = async (memo_id: string) => {
     try {
-      const res = await fetch(`${API_BASE}/${fileName}`, { method: 'DELETE' });
+      const res = await fetch(`/api/memos/${memo_id}`, { method: 'DELETE' });
 
       if (!res.ok) throw new Error(await res.text());
 
@@ -62,6 +62,8 @@ export default function HomePage() {
       alert('削除に失敗しました');
     }
   };
+
+  //useEffect
 
   useEffect(() => {
     fetchMemoList().then(setFiles);
