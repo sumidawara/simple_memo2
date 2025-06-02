@@ -24,3 +24,77 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+
+.markdown-preview {
+  /* Boxのスタイル */
+  flex-grow: 1;
+  max-width: 600px;
+  padding: 24px; /* 1rem = 16pxなので、3rem = 48px */
+  box-sizing: border-box;
+  background-color: var(--mui-palette-background-paper); /* MUIのテーマ変数があれば */
+  border-radius: 8px; /* 1 = 8px */
+  overflow-y: auto;
+  height: 100%;
+}
+
+.markdown-preview h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+.markdown-preview h2 {
+  font-size: 2rem;
+  margin-bottom: 0.8rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.4rem;
+}
+/* ... 他のh3-h6, p, a, pre, code, blockquote, img, hr も同様に定義 ... */
+
+.markdown-preview ul {
+  list-style: disc; /* リストマーカー表示 */
+  padding-left: 1.5em; /* インデント */
+  margin-bottom: 1rem;
+}
+
+.markdown-preview ol {
+  list-style: decimal; /* リストマーカー表示 */
+  padding-left: 1.5em; /* インデント */
+  margin-bottom: 1rem;
+}
+
+.markdown-preview li {
+  margin-bottom: 0.5em;
+}
+
+.markdown-preview pre {
+  background-color: #f6f8fa;
+  padding: 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.markdown-preview code {
+  font-family: monospace;
+  font-size: 0.9em;
+  background-color: rgba(27,31,35,.05);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+.markdown-preview pre > code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.markdown-preview blockquote {
+  border-left: 4px solid #ccc;
+  padding-left: 1em;
+  color: #666;
+  margin-bottom: 1rem;
+  font-style: italic;
+}

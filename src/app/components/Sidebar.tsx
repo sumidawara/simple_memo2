@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { IMemoMeta } from '@/types/IMemoMeta';
+
 import {
     Paper,
     Box,
@@ -16,16 +18,16 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 type SidebarProps = {
-    files: string[];
-    currentFile: string;
+    memometaArray: IMemoMeta[];
+    currentId: string;
     onFileSelect: (file: string) => void;
     onDelete: (file: string) => void;
     onCreate: () => void;
 };
 
 export default function Sidebar({
-    files,
-    currentFile,
+    memometaArray,
+    currentId,
     onFileSelect,
     onDelete,
     onCreate,
@@ -46,23 +48,25 @@ export default function Sidebar({
             </Typography>
 
             <List>
-                {files.map((file) => {
-                    const fileNameWithoutExt = file.replace(/\.md$/, '');
+                {memometaArray.map((memometa
+                ) => {
+                    const title = memometa.title;
+                    const id = memometa._id;
 
                     return (
-                        <ListItem key={file} disablePadding>
+                        <ListItem key={id} disablePadding>
                             <Box sx={{ position: 'relative', width: '100%' }}>
                                 <ListItemButton
-                                    selected={currentFile === file}
-                                    onClick={() => onFileSelect(file)}
+                                    selected={currentId === id}
+                                    onClick={() => onFileSelect(id)}
                                     sx={{ height: 48, px: 2 }}
                                 >
-                                    <ListItemText primary={fileNameWithoutExt} />
+                                    <ListItemText primary={title} />
                                 </ListItemButton>
 
                                 <IconButton
                                     aria-label="delete"
-                                    onClick={() => onDelete(file)}
+                                    onClick={() => onDelete(id)}
                                     size="small"
                                     sx={{
                                         position: 'absolute',

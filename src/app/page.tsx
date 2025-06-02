@@ -5,22 +5,35 @@ import Sidebar from './components/Sidebar';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
 import { Box, Divider } from '@mui/material';
+import { IMemo, IMemoMeta } from '@/types/IMemoMeta';
 
 export default function HomePage() {
-  const [text, setText] = useState('');
-  const [files, setFiles] = useState<string[]>([]);
-  const [currentFile, setCurrentFile] = useState<string | null>(null);
-
-  const API_BASE = '/api/memos';
+  const [memo, setMemo] = useState<IMemo | null>(null);
+  //const [files, setFiles] = useState<string[]>([]);
+  const [memometaArray, setMemometaArray] = useState<IMemoMeta[]>([]);
+  const [currentId, setCurrentId] = useState<string | null>(null);
 
   const fetchMemoList = async () => {
-    const res = await fetch(API_BASE);
-    return await res.json(); // ['sample1.md', ...]
+    const res = await fetch(`/api/memos/`);
+
+    if (!res.ok) { // レスポンスが成功したかを確認 (例: 200 OK)
+      console.error('APIからメモリストの取得に失敗しました:', res.status, res.statusText);
+      return [];
+    }
+  
+    const data: IMemoMeta[]  = await res.json();
+    setMemometaArray(data);
+
+    return data; // パースされたデータを返す
   };
 
   const fetchMemoContent = async (memo_id: string) => {
     const res = await fetch(`/api/memos/${memo_id}`);
-    return await res.text();
+
+    const data: IMemo = await res.json();
+    setMemo(data);
+
+    return data;
   };
 
   const saveMemo = async (memo_id: string, content: string) => {
@@ -40,7 +53,7 @@ export default function HomePage() {
       const result = await res.json();
       console.log(result.message);
 
-      fetchMemoList().then(setFiles);
+      fetchMemoList();
     } catch (err: any) {
       console.error('新規作成失敗:', err.message);
       alert('新しいファイルの作成に失敗しました');
@@ -56,7 +69,7 @@ export default function HomePage() {
       const result = await res.json();
       console.log(result.message);
 
-      fetchMemoList().then(setFiles);
+      fetchMemoList();
     } catch (err: any) {
       console.error('削除失敗:', err.message);
       alert('削除に失敗しました');
@@ -66,29 +79,33 @@ export default function HomePage() {
   //useEffect
 
   useEffect(() => {
-    fetchMemoList().then(setFiles);
+    fetchMemoList();
   }, []);
 
   useEffect(() => {
-    if (!currentFile) return;
+    if (!currentId) return;
 
     const timeoutId = setTimeout(() => {
-      saveMemo(currentFile, text).catch((err) => {
+      const content = memo?.content || '';
+      saveMemo(currentId, content).catch((err) => {
         console.error('自動保存失敗:', err);
       });
     }, 1500);
 
     return () => clearTimeout(timeoutId);
-  }, [text]);
+  }, [memo]);
 
-  const handleFileSelect = async (filename: string) => {
+  const handleFileSelect = async (memo_id: string) => {
     try {
-      if (currentFile && currentFile !== filename) {
-        await saveMemo(currentFile, text);
+      //違うやつを選択したらセーブ
+      if (currentId && currentId !== memo_id) {
+        const content = memo?.content || '';
+        await saveMemo(currentId, content);
       }
-      const content = await fetchMemoContent(filename);
-      setText(content);
-      setCurrentFile(filename);
+
+      fetchMemoContent(memo_id);
+      setCurrentId(memo_id);
+
     } catch (err) {
       console.error('読み込み or 保存失敗:', err);
     }
@@ -97,15 +114,15 @@ export default function HomePage() {
   return (
     <Box display="flex" height="100vh">
       <Sidebar
-        files={files}
-        currentFile={currentFile ?? ''}
+        memometaArray={memometaArray}
+        currentId={currentId ?? ''}
         onFileSelect={handleFileSelect}
         onDelete={deleteMemo}
         onCreate={createMemo}
       />
-      <Editor text={text} setText={setText} />
+      <Editor memo={memo} setMemo={setMemo} />
       <Divider orientation="vertical" flexItem sx={{ mx: 1, borderColor: 'rgba(0, 0, 0, 0.12)' }} />
-      <Preview text={text} />
+      <Preview text={memo?.content || ''} />
     </Box>
   );
 }

@@ -2,13 +2,33 @@
 
 import React from 'react';
 import { Box } from '@mui/material';
+import { IMemo } from '@/types/IMemoMeta';
 
 type EditorProps = {
-  text: string;
-  setText: (value: string) => void;
+  memo: IMemo | null;
+  setMemo: (value: IMemo | null) => void;
 };
 
-export default function Editor({ text, setText }: EditorProps) {
+export default function Editor({ memo, setMemo }: EditorProps) {
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+
+    console.log(memo);
+    const newContent = e.target.value;
+    // memo が null の場合
+    if (memo === null) {
+
+    }
+    // memo が IMemo オブジェクトの場合は、content と updatedAt を更新
+    else {
+      setMemo({
+        ...memo,
+        content: newContent,
+        updatedAt: new Date(),
+      });
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -35,8 +55,8 @@ export default function Editor({ text, setText }: EditorProps) {
           color: 'inherit',
           boxSizing: 'border-box',
         }}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
+        value={memo?.content || ''}
+        onChange={handleContentChange}
       />
     </Box>
   );

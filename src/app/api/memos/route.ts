@@ -6,6 +6,21 @@ import clientPromise from '@/lib/mongodb';  // MongoDBクライアントの接�
 
 //すべてのメモを取得
 export async function GET(request: NextRequest) {
+    try {
+        const client = await clientPromise;
+        const db = client.db('memos-db'); // 使うDB名に変更してください
+        const memos = db.collection('memos');
+
+        const metadataArray = await memos
+            .find({}, { projection: { title: 1, createdAt: 1, updatedAt: 1 } }) // _id はデフォルトで含まれる
+            .toArray();
+        
+        return NextResponse.json(metadataArray, { status: 200 });
+    }
+    catch (error) {
+        console.error('Failed to create memo:', error);
+        return NextResponse.json({ error: 'Failed to create memo' }, { status: 500 });
+    }
 }
 
 //新しいメモを作成
