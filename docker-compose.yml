@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Next.jsからMongoDBに接続するためのURLを設定します。
+      # mongo-service はdocker-compose.yml内で定義したMongoDBサービス名です。
+      # Docker Composeのデフォルトネットワークでは、サービス名がホスト名として解決されます。
+      DATABASE_URL: mongodb://mongo-service:27017/nextjsdb # データベース名は適宜変更してください
+      NODE_ENV: development # 開発環境向け。本番環境ではproductionに
+      # NEXT_PUBLIC_API_URL: http://localhost:3000/api # Next.jsのAPIルートがコンテナ内から自身を参照する場合など
+    volumes:
+      # 開発時にホットリロードを有効にするためにソースコードをマウントする場合
+      # 本番環境ではコメントアウトしてください
+      - .:/app
+      - /app/node_modules # ホストのnode_modulesがコンテナを上書きしないようにする
+    restart: always # コンテナが終了した場合に自動的に再起動
+    depends_on:
+      - mongo-service # nextjsサービスがmongo-serviceの後に起動するようにします
+
+  mongo-service: # MongoDBサービスの定義
+    # MongoDBの公式イメージを使用します。
+    # 特定のバージョンを指定することをお勧めします (例: mongo:7.0)
+    image: mongo:7.0
+    ports:
+      - "27017:27017" # ホストの27017ポートをコンテナの27017ポートにマッピング
+    environment:
+      # MongoDBの認証情報を設定する場合。本番環境では必ず設定してください。
+      # MONGO_INITDB_ROOT_USERNAME: your_username
+      # MONGO_INITDB_ROOT_PASSWORD: your_password
+    volumes:
+      # データベースデータを永続化するためのボリューム
+      # コンテナを削除してもデータが失われないようにします
+      - mongo_data:/data/db
+      # オプション: MongoDBの初期化スクリプトをマウントする場合
+      # - ./mongo-init:/docker-entrypoint-initdb.d
+    restart: always # コンテナが終了した場合に自動的に再起動
+
+volumes:
+  mongo_data: # データベースデータを永続化するためのボリュームを定義
