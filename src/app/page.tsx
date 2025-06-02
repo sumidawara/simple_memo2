@@ -7,7 +7,14 @@ import Preview from './components/Preview';
 import { Box, Divider } from '@mui/material';
 import { IMemo, IMemoMeta } from '@/types/IMemoMeta';
 
+import { useSession, signIn, signOut } from 'next-auth/react'; // NextAuth.js のフックをインポート
+import { useRouter } from 'next/navigation'; // Next.js のルーターフック
+
 export default function HomePage() {
+  const { data: session, status } = useSession(); // 認証セッションと状態を取得
+  const router = useRouter(); // ルーターフックを初期化
+
+
   const [memo, setMemo] = useState<IMemo | null>(null);
   //const [files, setFiles] = useState<string[]>([]);
   const [memometaArray, setMemometaArray] = useState<IMemoMeta[]>([]);
@@ -20,8 +27,8 @@ export default function HomePage() {
       console.error('APIからメモリストの取得に失敗しました:', res.status, res.statusText);
       return [];
     }
-  
-    const data: IMemoMeta[]  = await res.json();
+
+    const data: IMemoMeta[] = await res.json();
     setMemometaArray(data);
 
     return data; // パースされたデータを返す
@@ -78,9 +85,33 @@ export default function HomePage() {
 
   //useEffect
 
+  // 認証状態の監視とリダイレクト
   useEffect(() => {
-    fetchMemoList();
-  }, []);
+    if (status === 'loading') {
+      // セッションのロード中は何もしないか、ローディング表示
+      return;
+    }
+    if (status === 'unauthenticated') {
+      // 未認証の場合、サインインページにリダイレクト
+      // NextAuth.js のデフォルトサインインページ '/api/auth/signin' にリダイレクトされる
+      // カスタムサインインページを使っている場合は router.push('/auth/signin');
+      signIn('google'); // Google プロバイダーでサインインページにリダイレクト
+      // または router.push('/auth/signin?callbackUrl=/'); // カスタムサインインページの場合
+    }
+    // 'authenticated' の場合は何もしない（以下でメモリストフェッチが走る）
+  }, [status, router]); // status と router を依存配列に追加
+
+  // ログイン後にメモリストをフェッチする useEffect
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchMemoList();
+    } else if (status === 'unauthenticated') {
+      // ログアウトした場合、メモリストをクリア
+      setMemometaArray([]);
+      setMemo(null);
+      setCurrentId(null);
+    }
+  }, [status]); // status の変更を監視
 
   useEffect(() => {
     if (!currentId) return;
@@ -110,6 +141,14 @@ export default function HomePage() {
       console.error('読み込み or 保存失敗:', err);
     }
   };
+
+
+  // 認証されていない場合やローディング中は特定のUIを表示
+  if (status === 'loading' || status === 'unauthenticated') {
+    // ここで表示されるUIが「一瞬表示されるwebui」の一部である可能性があります。
+    // もしこのローディングメッセージすら表示したくない場合は、null を返すことも検討できます。
+    return <p>Loading or redirecting to sign in...</p>;
+  }
 
   return (
     <Box display="flex" height="100vh">
