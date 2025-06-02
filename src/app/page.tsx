@@ -93,11 +93,7 @@ export default function HomePage() {
       return;
     }
     if (status === 'unauthenticated') {
-      // 未認証の場合、サインインページにリダイレクト
-      // NextAuth.js のデフォルトサインインページ '/api/auth/signin' にリダイレクトされる
-      // カスタムサインインページを使っている場合は router.push('/auth/signin');
-      signIn('google'); // Google プロバイダーでサインインページにリダイレクト
-      // または router.push('/auth/signin?callbackUrl=/'); // カスタムサインインページの場合
+      router.push('/auth/login');
     }
     // 'authenticated' の場合は何もしない（以下でメモリストフェッチが走る）
   }, [status, router]); // status と router を依存配列に追加
@@ -147,7 +143,7 @@ export default function HomePage() {
   const handleLogout = async () => {
     // ログアウト後、ホームページにリダイレクトすることを試みます。
     // その後、現在のuseEffectのロジックにより、再度Googleサインインに誘導されます。
-    await signOut({ redirect: true, callbackUrl: '/' });
+    await signOut({ redirect: true, callbackUrl: '/auth/logout' });
   };
 
 
@@ -160,8 +156,8 @@ export default function HomePage() {
 
   return (
     <Box display="flex" flexDirection="column" height="100vh" sx={{ overflow: 'hidden' }}>
-      
-      <Header session={session} handleLogout={handleLogout}/>
+
+      <Header session={session} handleLogout={handleLogout} />
 
       {/* メインコンテンツエリア */}
       <Box display="flex" flexGrow={1} sx={{ overflow: 'hidden' }}>
