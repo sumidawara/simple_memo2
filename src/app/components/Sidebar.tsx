@@ -43,9 +43,9 @@ export default function Sidebar({
                 bgcolor: 'background.sidebar',
             }}
         >
-            <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>
+            {/* <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>
                 Simple Memo
-            </Typography>
+            </Typography> */}
 
             <List>
                 {memometaArray.map((memometa

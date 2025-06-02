@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
-import { Box, Divider } from '@mui/material';
+import Header from './components/Header';
+import { Box, Button, Divider } from '@mui/material';
 import { IMemo, IMemoMeta } from '@/types/IMemoMeta';
 
 import { useSession, signIn, signOut } from 'next-auth/react'; // NextAuth.js のフックをインポート
@@ -142,6 +143,13 @@ export default function HomePage() {
     }
   };
 
+  // ログアウト処理関数
+  const handleLogout = async () => {
+    // ログアウト後、ホームページにリダイレクトすることを試みます。
+    // その後、現在のuseEffectのロジックにより、再度Googleサインインに誘導されます。
+    await signOut({ redirect: true, callbackUrl: '/' });
+  };
+
 
   // 認証されていない場合やローディング中は特定のUIを表示
   if (status === 'loading' || status === 'unauthenticated') {
@@ -151,17 +159,43 @@ export default function HomePage() {
   }
 
   return (
-    <Box display="flex" height="100vh">
-      <Sidebar
-        memometaArray={memometaArray}
-        currentId={currentId ?? ''}
-        onFileSelect={handleFileSelect}
-        onDelete={deleteMemo}
-        onCreate={createMemo}
-      />
-      <Editor memo={memo} setMemo={setMemo} />
-      <Divider orientation="vertical" flexItem sx={{ mx: 1, borderColor: 'rgba(0, 0, 0, 0.12)' }} />
-      <Preview text={memo?.content || ''} />
+    <Box display="flex" flexDirection="column" height="100vh" sx={{ overflow: 'hidden' }}>
+      
+      <Header session={session} handleLogout={handleLogout}/>
+
+      {/* メインコンテンツエリア */}
+      <Box display="flex" flexGrow={1} sx={{ overflow: 'hidden' }}>
+        <Sidebar
+          memometaArray={memometaArray}
+          currentId={currentId ?? ''}
+          onFileSelect={handleFileSelect}
+          onDelete={deleteMemo}
+          onCreate={createMemo}
+        />
+        {/* EditorとPreviewがコンテンツ量によって高さが変わる場合、
+            flexGrowとoverflow:autoを適切に設定する必要があるかもしれません。
+            ここではEditorとPreviewがそれぞれ適切に高さを管理すると仮定します。
+        */}
+        <Box
+          sx={{
+            display: 'flex', // Flexboxを有効にする
+            flexDirection: 'row', // 子要素を横並びにする（デフォルトでもrowですが明示的に）
+            width: '100%', // 親要素の幅いっぱいに広がる
+            height: '100%', // 親要素の高さいっぱいに広がる (例: viewport height `vh` や、親要素の高さに応じて設定)
+            flexGrow: 1, // 利用可能なスペースを占めるようにする
+          }}
+        >
+          <Box sx={{ flex: 1 }}> {/* Editorが利用可能なスペースの半分を占める */}
+            <Editor memo={memo} setMemo={setMemo} />
+          </Box>
+
+          <Divider orientation="vertical" flexItem sx={{ mx: 1, borderColor: 'rgba(0, 0, 0, 0.12)' }} />
+
+          <Box sx={{ flex: 1 }}> {/* Previewが利用可能なスペースの半分を占める */}
+            <Preview text={memo?.content || ''} />
+          </Box>
+        </Box>
+      </Box>
     </Box>
   );
 }
