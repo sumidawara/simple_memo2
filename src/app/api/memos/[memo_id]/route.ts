@@ -1,24 +1,23 @@
-import fs from 'fs';
 import path from 'path';
 
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-const MEMOS_DIR = path.join(process.cwd(), 'memos');/*  */
+// const MEMOS_DIR = path.join(process.cwd(), 'memos');/*  */
 
 // メモ内容を取得（GET /api/memos/[memo_id]）
 // メモを保存（PUT /api/memos/[memo_id])
 // メモを削除（DELETE /api/memos/[memo_id]）
 
 // メモ内容を取得（GET /api/memos/[memo_id]）
-export async function GET(req: NextRequest, props: { params: { memo_id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ memo_id: string }> }) {
   try {
     const client = await clientPromise;
     const db = client.db('memos-db');
     const memos = db.collection('memos');
 
-    const resolvedParams = await props.params;
+    const resolvedParams = await params;
     const memo_id = resolvedParams.memo_id;
 
     const memo = await memos.findOne({ _id: new ObjectId(memo_id) });
@@ -35,7 +34,7 @@ export async function GET(req: NextRequest, props: { params: { memo_id: string }
 }
 
 // メモを保存（PUT /api/memos/[memo_id])
-export async function PUT(req: NextRequest, props: { params: { memo_id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ memo_id: string }> }) {
   try {
     const client = await clientPromise;
     const db = client.db('memos-db');
@@ -66,7 +65,7 @@ export async function PUT(req: NextRequest, props: { params: { memo_id: string }
 }
 
 // メモを削除（DELETE /api/memos/[memo_id]）
-export async function DELETE(req: NextRequest, props: { params: { memo_id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ memo_id: string }> }) {
   try
   {
     const client = await clientPromise;

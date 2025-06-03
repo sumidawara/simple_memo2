@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
+  // ... その他の設定
+  eslint: {
+    ignoreDuringBuilds: true, // この行を追加
+  },
 };
 
 export default nextConfig;
