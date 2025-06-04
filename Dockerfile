@@ -1,32 +1,30 @@
-# ----------------------------------------------------------------------------------------------------
-# ビルドステージ: 依存関係のインストールとNext.jsアプリケーションのビルド
-# ----------------------------------------------------------------------------------------------------
-FROM node:20-bookworm-slim AS builder 
+# Dockerfile
 
+# ベースイメージとしてNode.js 20を使用
+FROM node:20
+
+# アプリケーションの作業ディレクトリを設定
 WORKDIR /app
 
-# package.jsonとpackage-lock.jsonをコピーし、依存関係をインストール
-# npmの場合、package-lock.jsonを使用します
-COPY package.json package-lock.json ./
+# 依存関係のキャッシュを有効にするために、まずpackage.jsonとpackage-lock.jsonをコピー
+# (もしyarnやpnpmを使っている場合は、それぞれyarn.lock, pnpm-lock.yamlに置き換えてください)
+COPY package*.json ./
+
+# 依存関係をインストール (npm ci を使用してlockファイルに基づいて厳密にインストール)
+# これにより、devDependenciesもインストールされますが、Next.jsのビルドには必要です。
 RUN npm ci
-# プロジェクトのソースコードを全てコピー
+
+# アプリケーションのソースコードをコピー
 COPY . .
 
-# Next.jsアプリケーションを本番用にビルド
+# Next.jsアプリケーションをビルド
+# package.jsonのscriptsに "build": "next build" が定義されていることを想定
 RUN npm run build
 
-# ----------------------------------------------------------------------------------------------------
-# ランタイムステージ: ビルドされたアプリケーションの実行環境
-# ----------------------------------------------------------------------------------------------------
-FROM node:20-bookworm-slim AS runner
-
-# Next.jsの本番環境用ファイルと、package.jsonをコピー
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
-
-# ポートを公開
+# アプリケーションがリッスンするポートを指定 (Next.jsのデフォルトは3000)
 EXPOSE 3000
 
-# Next.jsアプリケーションを起動
-CMD ["npm", "start"]
+# アプリケーションを起動するコマンド
+# package.jsonのscriptsに "start": "next start" が定義されていることを想定
+# Next.js 15では `next start` でプロダクションサーバーを起動します。
+CMD ["npm", "run", "start"]

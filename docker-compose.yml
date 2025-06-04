@@ -1,45 +1,44 @@
+# docker-compose.yml
+
 version: '3.8'
 
 services:
-  nextjs:
+  # Next.jsアプリケーションサービス
+  next-app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3000:3000" # ホストの3000番ポートをコンテナの3000番ポートにマッピング
     environment:
-      # Next.jsからMongoDBに接続するためのURLを設定します。
-      # mongo-service はdocker-compose.yml内で定義したMongoDBサービス名です。
-      # Docker Composeのデフォルトネットワークでは、サービス名がホスト名として解決されます。
-      DATABASE_URL: mongodb://mongo-service:27017/nextjsdb # データベース名は適宜変更してください
-      NODE_ENV: development # 開発環境向け。本番環境ではproductionに
-      # NEXT_PUBLIC_API_URL: http://localhost:3000/api # Next.jsのAPIルートがコンテナ内から自身を参照する場合など
-    volumes:
-      # 開発時にホットリロードを有効にするためにソースコードをマウントする場合
-      # 本番環境ではコメントアウトしてください
-      - .:/app
-      - /app/node_modules # ホストのnode_modulesがコンテナを上書きしないようにする
-    restart: always # コンテナが終了した場合に自動的に再起動
-    depends_on:
-      - mongo-service # nextjsサービスがmongo-serviceの後に起動するようにします
+      MONGODB_URI: mongodb://localhost:27017
 
-  mongo-service: # MongoDBサービスの定義
-    # MongoDBの公式イメージを使用します。
-    # 特定のバージョンを指定することをお勧めします (例: mongo:7.0)
-    image: mongo:7.0
+      NEXTAUTH_URL: a 
+      NEXTAUTH_SECRET: a 
+      GOOGLE_CLIENT_ID: a 
+      GOOGLE_CLIENT_SECRET: a      
+    depends_on:
+      - mongo # mongoサービスが起動してからnext-appサービスを起動
+    # 開発時にソースコードの変更を即時反映したい場合は以下のvolumesセクションを有効化します。
+    # ただし、本番環境ではビルド済みのイメージを使用するため、通常は不要です。
+    # volumes:
+    #   - .:/app # 現在のディレクトリをコンテナの/appにマウント
+    #   - /app/node_modules # ホストのnode_modulesで上書きされないようにする
+    #   - /app/.next # ホストの.nextで上書きされないようにする
+    restart: unless-stopped
+
+  # MongoDBサービス
+  mongo:
+    image: mongo:latest # 最新のMongoDBイメージを使用 (特定のバージョンを指定することも推奨)
     ports:
-      - "27017:27017" # ホストの27017ポートをコンテナの27017ポートにマッピング
-    environment:
-      # MongoDBの認証情報を設定する場合。本番環境では必ず設定してください。
-      # MONGO_INITDB_ROOT_USERNAME: your_username
-      # MONGO_INITDB_ROOT_PASSWORD: your_password
+      - "27017:27017" # ホストの27017番ポートをコンテナの27017番ポートにマッピング
     volumes:
-      # データベースデータを永続化するためのボリューム
-      # コンテナを削除してもデータが失われないようにします
-      - mongo_data:/data/db
-      # オプション: MongoDBの初期化スクリプトをマウントする場合
-      # - ./mongo-init:/docker-entrypoint-initdb.d
-    restart: always # コンテナが終了した場合に自動的に再起動
+      - mongo-data:/data/db # 名前付きボリュームを使用してデータを永続化
+    # 必要に応じてMongoDBの認証情報を設定
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: root
+    #   MONGO_INITDB_ROOT_PASSWORD: examplepassword
+    restart: unless-stopped
 
 volumes:
-  mongo_data: # データベースデータを永続化するためのボリュームを定義
+  mongo-data: # MongoDBのデータ永続化用ボリューム
